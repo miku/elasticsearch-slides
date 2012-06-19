@@ -101,7 +101,7 @@ for j, record in enumerate(record_iterator, start=1):
 # 3rd iteration ↺
 
 * 2nd iteration +
-    * multiprocessing with 10–200 worker
+    * multiprocessing with 10–200 worker processes
     * plain SQL
     * optimized (batched) Libero-requests
     * a bit of memcached
