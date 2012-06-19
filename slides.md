@@ -134,7 +134,7 @@ with open(filename, 'r') as handle:
 # 4th iteration ↺
 
 * shift to a slightly different processing model
-* **NEW!** **cache** all Libero item data (MySQL) – less network overhead
+* **NEW!** **cache** all Libero item data (MySQL) – less network overhead – not possible without Libero *hacks*
 * **NEW!** hold all raw source data in **elasticsearch** – faster, more fine grained access
 * no more XML configuration, but one (or more) python scripts per data source
 * Python (1708), Java (1292), bash (800)
