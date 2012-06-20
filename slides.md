@@ -12,7 +12,7 @@
 
 * handle **various** data sources
 
-    *BSZ, Naxos, E-Book Library, Nutzergesteuerte Erwerbung (PDA), ...*
+    *BSZ, Naxos, Nutzergesteuerte Erwerbung (Print, Ebooks), ...*
 
 * export **FINCMARC** as deliverable for VuFind **frontend**
 * handle **deduplication**, **Libero** item data, MARC field rewrites, ...
