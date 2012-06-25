@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>mdma-slides</title>
+    <title>elasticsearch-slides</title>
     <meta charset='utf-8' />
     <meta content='width=1024, user-scalable=no' name='viewport' />
     <!-- deck.js's core css -->
@@ -24,186 +24,31 @@
     <script src="deck.js/support/modernizr.custom.js" type="text/javascript"></script>
   </head>
   <body class='deck-container keydown'>
-    <section class='full-background meta slide'>
+    <section class='full-background slide tree'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h1><strong>m</strong>eta<strong>d</strong>ata <strong>ma</strong>nagement <em>in four iterations</em></h1>
+        <h1>5 minutes intro to Elasticsearch</h1>
       </div>
       <div class='spacer bottom'></div>
     </section>
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h1>Goals for FINC mdma</h1>
+        <h1>Elasticsearch <span style="color:gray">is a</span></h1>
         
         <ul>
-        <li><p>handle <strong>various</strong> data sources</p>
-        
-        <p>  <em>BSZ, Naxos, Nutzergesteuerte Erwerbung (Print, Ebooks), ...</em></p></li>
-        <li><p>export <strong>FINCMARC</strong> as deliverable for VuFind <strong>frontend</strong></p></li>
-        <li>handle <strong>deduplication</strong>, <strong>Libero</strong> item data, MARC field rewrites, ...</li>
-        </ul>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-  <div class='spacer top'></div>
-  <div class='content'>
-    <h1>1st iteration ↺</h1>
-    
-    <ul>
-    <li>PHP (261) and XML-driven (89) configuration</li>
-    <li>leveraging common utils: <em>mv, yaz-marcdump, iconv</em></li>
-    <li><strong>bootstrapped</strong> the metadata management</li>
-    </ul>
-    
-    
-    <p><textarea class='code' display='none' mode='xml'><source file="KA_010_1994-tit.mrc">&#x000A;    <prefix tag="001" prefix="PPN000000_" /> &#x000A;    <mergeaut />&#x000A;</source>&#x000A;&#x000A;<source file="NaxosNML-full.mrc">&#x000A;    <iconv from="iso8859-1" />&#x000A;    <copytag totag="001" fromtag="028a" />&#x000A;    <prefix tag="001" prefix="EXT000005_" />&#x000A;    <tagreplace tag="856u"&#x000A;        pattern="^.*(=[^=]+$)" &#x000A;        replace="http://example.com/sc.asp?ver=2.0&amp;item_code$1"/>&#x000A;</source></textarea>
-</p>
-    
-    <p><textarea class='code' display='none' mode='php'>$filelist = glob("$tdir/$workfix*");&#x000A;    echo "processing " . count($filelist) . " chunks\n";&#x000A;    foreach($filelist as $file) {&#x000A;        foreach($source->children() as $action) {&#x000A;            ...</textarea>
-</p>
-  </div>
-  <div class='spacer bottom'></div>
-</section>
-    <section class='left slide'>
-  <div class='spacer top'></div>
-  <div class='content'>
-    <h1>2nd iteration ↺</h1>
-    
-    <ul>
-    <li>Python (1814) and XML-driven (148) configuration</li>
-    <li>libraries: <em>pymarc, libxml, sqlalchemy</em></li>
-    <li><strong>NEW!</strong> metadata snapshot stored in <strong>database</strong> (MySQL)</li>
-    </ul>
-    
-    
-    <p><textarea class='code' display='none' mode='xml'><datasource kind="title" source_id="0" record_field="001"&#x000A;    content_type="application/marc" location="/var/i/000/2*/*-tit.mrc">&#x000A;    <process>&#x000A;        <fm_cloneOriginal />&#x000A;        <fm_setField field="001" value="finc_id()" />&#x000A;        <bag_getKeyFromOriginal field="020" subfield="a" key="isbn" />&#x000A;        <fm_setLocalInfo />&#x000A;        <bag_getLiberoItemData />&#x000A;    </process>&#x000A;</datasource></textarea>
-</p>
-    
-    <p><textarea class='code' display='none' mode='python'>for j, record in enumerate(record_iterator, start=1):&#x000A;    ...&#x000A;    for command in _commands:&#x000A;        if 'skip_this' not in bag:&#x000A;            bag = command.execute(bag)&#x000A;    ...</textarea>
-</p>
-  </div>
-  <div class='spacer bottom'></div>
-</section>
-    <section class='full-background left slide slow'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h1><strong>slow</strong> on 9.1GB of data and 19M records (and that's just one data source)</h1>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h1>2nd iteration slowness</h1>
-        
-        <ul>
-        <li>needed to reach out to Libero for <strong>every</strong> record</li>
-        <li>no multiprocessing / threading</li>
-        <li>a bit of ORM overhead</li>
-        </ul>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-  <div class='spacer top'></div>
-  <div class='content'>
-    <h1>3rd iteration ↺</h1>
-    
-    <ul>
-    <li>2nd iteration +
-    
-    <ul>
-    <li>multiprocessing with 10–200 worker processes</li>
-    <li>plain SQL</li>
-    <li>optimized (batched) Libero-requests</li>
-    <li>a bit of memcached</li>
-    </ul>
-    </li>
-    <li>Python (1760), XML (451)</li>
-    </ul>
-    
-    
-    <p><textarea class='code' display='none' mode='python'>QUEUE_SIZE = 20000&#x000A;tasks = multiprocessing.JoinableQueue(QUEUE_SIZE)&#x000A;num_workers = args.workers or multiprocessing.cpu_count() * 40&#x000A;workers = [ Worker(tasks, appconfig, iconf) for i in range(num_workers) ]&#x000A;_ = [ w.start() for w in workers ]&#x000A;...&#x000A;with open(filename, 'r') as handle:&#x000A;    reader = pymarc.MARCReader(handle.read(), to_unicode=True)&#x000A;    for i, record in enumerate(reader):&#x000A;        tasks.put(record)</textarea>
-</p>
-  </div>
-  <div class='spacer bottom'></div>
-</section>
-    <section class='full-background left slide tape'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h1>3rd iteration: faster, but still sequential – still more control over data needed</h1>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-  <div class='spacer top'></div>
-  <div class='content'>
-    <h1>4th iteration ↺</h1>
-    
-    <ul>
-    <li>shift to a slightly different processing model</li>
-    <li><strong>NEW!</strong> <strong>cache</strong> all Libero item data (MySQL) – less network overhead – not possible without Libero <em>hacks</em></li>
-    <li><strong>NEW!</strong> hold all raw source data in <strong>elasticsearch</strong> – faster, more fine grained access</li>
-    <li>no more XML configuration, but one (or more) python scripts per data source</li>
-    <li>Python (1708), Java (1292), bash (800)</li>
-    </ul>
-    
-    
-    <p><textarea class='code' display='none' mode='python'>isbns = set()&#x000A;for subfield in doc['content']['020']:&#x000A;    if 'a' in subfield:&#x000A;        # 020.a may look like: '9780948838903 (pbk.) :'&#x000A;        isbns.add(subfield['a'].split()[0])&#x000A;&#x000A;for isbn in isbns:&#x000A;    # dedup here</textarea>
-</p>
-  </div>
-  <div class='spacer bottom'></div>
-</section>
-    <section class='left slide'>
-  <div class='spacer top'></div>
-  <div class='content'>
-    <h1>4th iteration data access</h1>
-    
-    <ul>
-    <li>flexible ad-hoc queries on MARC</li>
-    <li>all records with ISBN 9781430272304</li>
-    </ul>
-    
-    
-    <p><textarea class='code' display='none' mode='sh'>$ curl -XGET 0.0.0.0:9200/_search?q=content.020.a:9781430272304</textarea>
-</p>
-    
-    <ul>
-    <li>kinds of classifications on NEP</li>
-    </ul>
-    
-    
-    <p><textarea class='code' display='none' mode='sh'>$ curl -XPOST "http://0.0.0.0:9200/nep/_search?pretty=true" -d&#x000A;    '{ "query" : { "match_all" : {} }, &#x000A;       "facets" : { "tags" : { "terms" : { "field" : "content.072.2" }}}}'</textarea>
-</p>
-    
-    <ul>
-    <li>pipeable processing (streams records from elasticsearch via processing script into metadata db)</li>
-    </ul>
-    
-    
-    <p><textarea class='code' display='none' mode='sh'>$ ./scroll.sh --index bsz --meta.kind=title | ./scripts/bsz.py</textarea>
-</p>
-  </div>
-  <div class='spacer bottom'></div>
-</section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h1>4th iteration summary</h1>
-        
-        <ul>
-        <li>fast (~10x speedup with fewer workers vs 2nd iteration)</li>
-        <li>flexible data access, easier debugging</li>
+        <li>multitenant,</li>
+        <li>real-time,</li>
+        <li>distributed</li>
         </ul>
         
         
-        <p><strong>but ...</strong></p>
+        <p>index engine based on <strong>Lucene</strong>, that</p>
         
         <ul>
-        <li>data redundancy (files and index)</li>
-        <li>no more declarative XML configuration</li>
+        <li>adapts to your domain model (not the other way around)</li>
+        <li>is easy to setup and</li>
+        <li>is fully configurable through an HTTP API</li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -211,20 +56,222 @@
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h1>lessons learned so far</h1>
+        <h1>Elasticsearch</h1>
         
         <ul>
-        <li><strong>cache</strong> everything (libero data), never go over the network for data you'll access often, stale data (few hours) is ok here</li>
-        <li>make data item <strong>accessible</strong> (elasticsearch for currently 7 sources, more to come soon) / within milliseconds (still needs some work)</li>
-        <li>assume your data-flow can <strong>change</strong> tomorrow (new deduplication workflow, new source, new fields, etc.)</li>
+        <li><span style="color:gray">was started</span> by the author of Compass, Shay Banon</li>
+        <li><span style="color:gray">is written</span> in Java</li>
+        <li><span style="color:gray">is actively developed</span> @<a href="https://github.com/elasticsearch/elasticsearch">github.com/elasticsearch/elasticsearch</a>
+        
+        <ul>
+        <li>0.5 (2 years ago)</li>
+        <li>0.17 (11 month ago)</li>
+        <li>0.18 (8 month ago)</li>
+        <li>0.19 (4 month ago)</li>
+        <li>0.19.4 (1 month ago)</li>
+        </ul>
+        </li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
     </section>
-    <section class='Nakonechna full-background left slide'>
+    <section class='left slide'>
+  <div class='spacer top'></div>
+  <div class='content'>
+    <h1>Multitenancy</h1>
+    
+    <ul>
+    <li>have as many indexes as you want</li>
+    <li>graylog uses one index per day</li>
+    <li>finc uses one index per data source</li>
+    </ul>
+    
+    
+    <p><textarea class='code' display='none' mode='sh'>$ curl -XPUT    localhost:9200/sample_index # create index&#x000A;$ curl -XPUT    localhost:9200/throwaway    # create another index&#x000A;$ curl -XDELETE localhost:9200/throwaway    # destroy index</textarea>
+</p>
+    
+    <ul>
+    <li>search over one or more indexes</li>
+    </ul>
+    
+    
+    <p><textarea class='code' display='none' mode='sh'>$ curl -XGET    localhost:9200/idx1,idx2/_search?q=Leipzig # search for Leipzig in idx1 and idx2</textarea>
+</p>
+  </div>
+  <div class='spacer bottom'></div>
+</section>
+    <section class='full-background left rt slide'>
+  <div class='spacer top'></div>
+  <div class='content'>
+    <h1>Real-time / <code>refresh_interval</code> at 1s by default</h1>
+  </div>
+  <div class='spacer bottom'></div>
+</section>
+    <section class='left slide'>
+  <div class='spacer top'></div>
+  <div class='content'>
+    <h1>Distributed</h1>
+    
+    <ul>
+    <li>start with one node, add more on the go</li>
+    <li>control the number of replicas</li>
+    </ul>
+    
+    
+    <p><textarea class='code' display='none' mode='sh'>$ curl -XPUT localhost:9200/sample_index/_settings -d '{ "index" : { "number_of_replicas" : 2 }}'</textarea>
+</p>
+    
+    <ul>
+    <li>automatic load balancing (index, search)</li>
+    </ul>
+  </div>
+  <div class='spacer bottom'></div>
+</section>
+    <section class='domain full-background left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h1>FIN</h1>
+        <h1>Adapts to your domain</h1>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>Adapts to your domain</h1>
+        
+        <ul>
+        <li>json documents</li>
+        <li>dynamic mapping (without overhead)</li>
+        <li>mapping templates</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+  <div class='spacer top'></div>
+  <div class='content'>
+    <h1>Easy to setup</h1>
+    
+    <ul>
+    <li>you'll need a Java Virtual Machine</li>
+    <li>then</li>
+    </ul>
+    
+    
+    <p><textarea class='code' display='none' mode='shell'>$ wget https://github.com/downloads/elasticsearch/elasticsearch/elasticsearch-0.19.4.zip&#x000A;$ unzip elasticsearch-0.19.4.zip&#x000A;$ cd elasticsearch-0.19.4&#x000A;$ bin/elasticsearch -f&#x000A;[16:25:21,766][INFO ][node      ] [Dracula] {0.19.4}[4028]: initializing ...&#x000A;[16:25:21,775][INFO ][plugins   ] [Dracula] loaded [], sites []&#x000A;[16:25:24,015][INFO ][node      ] [Dracula] {0.19.4}[4028]: initialized&#x000A;[16:25:24,015][INFO ][node      ] [Dracula] {0.19.4}[4028]: starting ...   &#x000A;...&#x000A;[16:25:27,324][INFO ][gateway   ] [Dracula] recovered [0] indices into cluster_state</textarea>
+</p>
+  </div>
+  <div class='spacer bottom'></div>
+</section>
+    <section class='left slide'>
+  <div class='spacer top'></div>
+  <div class='content'>
+    <h1>Easy to setup</h1>
+    
+    <ul>
+    <li>index a doc</li>
+    </ul>
+    
+    
+    <p><textarea class='code' display='none' mode='shell'>$ curl -XPUT 'http://localhost:9200/twitter/tweet/1' -d '{&#x000A;    "user" : "kimchy",&#x000A;    "post_date" : "2009-11-15T14:12:12",&#x000A;    "message" : "trying out Elastic Search"&#x000A;}'</textarea>
+</p>
+    
+    <ul>
+    <li>search a doc</li>
+    </ul>
+    
+    
+    <p><textarea class='code' display='none' mode='shell'>$ curl -XGET 'http://localhost:9200/twitter/tweet/_search?q=user:kimchy'</textarea>
+</p>
+  </div>
+  <div class='spacer bottom'></div>
+</section>
+    <section class='left slide'>
+  <div class='spacer top'></div>
+  <div class='content'>
+    <h1>Configuration via HTTP API</h1>
+
+<ul>
+<li><p>important settings:</p>
+
+<ul>
+<li><code>index.number_of_replicas</code></li>
+<li><code>index.refresh_interval</code></li>
+<li><code>index.blocks.read_only</code></li>
+</ul>
+</li>
+<li><p>and a lot more (Lucene settings)</p></li>
+</ul>
+  </div>
+  <div class='spacer bottom'></div>
+</section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>Tradeoffs</h1>
+        
+        <ul>
+        <li>no autowarming (see: <a href="https://github.com/elasticsearch/elasticsearch/issues/1006">https://github.com/elasticsearch/elasticsearch/issues/1006</a>)</li>
+        <li>while active, the community is much smaller than SOLR's</li>
+        <li>versioned documents would be nice, but it's not builtin (as we discovered)</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>What others say</h1>
+        
+        <ul>
+        <li><p>Solr may be the weapon of choice when building standard search applications, but Elasticsearch takes it to the next level with an architecture for creating modern realtime search applications.</p></li>
+        <li><p>Percolation is an exciting and innovative feature that singlehandedly blows Solr right out of the water. Elasticsearch is scalable, speedy and a dream to integrate with. (Ryan Sonnek, socialcast)</p></li>
+        <li><p>more: <a href="http://stackoverflow.com/questions/10213009/solr-vs-elasticsearch">http://stackoverflow.com/questions/10213009/solr-vs-elasticsearch</a>, <a href="http://www.quora.com/What-are-the-main-differences-between-ElasticSearch-Apache-Solr-and-SolrCloud">http://www.quora.com/What-are-the-main-differences-between-ElasticSearch-Apache-Solr-and-SolrCloud</a></p></li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='full-background left percolation slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>Percolation?</h1>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>Percolation</h1>
+        
+        <ul>
+        <li>Think of it as the reverse operation of indexing and then searching</li>
+        <li>Instead of sending docs, indexing them, and then running queries</li>
+        <li>One sends queries, registers them, and then sends docs and finds out which queries match that doc</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>Wrap up</h1>
+        
+        <ul>
+        <li><p>more features not covered:</p>
+        
+        <ul>
+        <li>search / query language</li>
+        <li>facets</li>
+        <li>scrolls</li>
+        </ul>
+        </li>
+        <li><p>language bindings:</p>
+        
+        <ul>
+        <li>Elasticsearch.pm, PHP, Ruby, Python, Java (native), .NET, Clojure, Erlang</li>
+        </ul>
+        </li>
+        </ul>
       </div>
       <div class='spacer bottom'></div>
     </section>

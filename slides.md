@@ -1,205 +1,184 @@
-# mdma-slides
+# elasticsearch-slides
 
 !SLIDE
 
-# **m**eta**d**ata **ma**nagement *in four iterations*
+# 5 minutes intro to Elasticsearch
 
-}}} images/meta.jpg
-
-!SLIDE left
-
-# Goals for FINC mdma
-
-* handle **various** data sources
-
-    *BSZ, Naxos, Nutzergesteuerte Erwerbung (Print, Ebooks), ...*
-
-* export **FINCMARC** as deliverable for VuFind **frontend**
-* handle **deduplication**, **Libero** item data, MARC field rewrites, ...
+}}} images/tree.jpg
 
 !SLIDE left
 
-# 1st iteration ↺
+# Elasticsearch <span style="color:gray">is a</span>
 
-* PHP (261) and XML-driven (89) configuration
-* leveraging common utils: *mv, yaz-marcdump, iconv*
-* **bootstrapped** the metadata management
+* multitenant,
+* real-time,
+* distributed
 
-``` xml
-<source file="KA_010_1994-tit.mrc">
-    <prefix tag="001" prefix="PPN000000_" /> 
-    <mergeaut />
-</source>
+index engine based on **Lucene**, that
 
-<source file="NaxosNML-full.mrc">
-    <iconv from="iso8859-1" />
-    <copytag totag="001" fromtag="028a" />
-    <prefix tag="001" prefix="EXT000005_" />
-    <tagreplace tag="856u"
-        pattern="^.*(=[^=]+$)" 
-        replace="http://example.com/sc.asp?ver=2.0&amp;item_code$1"/>
-</source>
+* adapts to your domain model (not the other way around)
+* is easy to setup and
+* is fully configurable through an HTTP API
+
+!SLIDE left
+
+# Elasticsearch
+
+* <span style="color:gray">was started</span> by the author of Compass, Shay Banon
+* <span style="color:gray">is written</span> in Java
+* <span style="color:gray">is actively developed</span> @[github.com/elasticsearch/elasticsearch](https://github.com/elasticsearch/elasticsearch)
+    * 0.5 (2 years ago)
+    * 0.17 (11 month ago)
+    * 0.18 (8 month ago)
+    * 0.19 (4 month ago)
+    * 0.19.4 (1 month ago)
+
+!SLIDE left
+
+# Multitenancy
+
+* have as many indexes as you want
+* graylog uses one index per day
+* finc uses one index per data source
+
+``` sh
+$ curl -XPUT    localhost:9200/sample_index # create index
+$ curl -XPUT    localhost:9200/throwaway    # create another index
+$ curl -XDELETE localhost:9200/throwaway    # destroy index
 ```
 
-``` php
-$filelist = glob("$tdir/$workfix*");
-    echo "processing " . count($filelist) . " chunks\n";
-    foreach($filelist as $file) {
-        foreach($source->children() as $action) {
-            ...
+* search over one or more indexes
+
+``` sh
+$ curl -XGET    localhost:9200/idx1,idx2/_search?q=Leipzig # search for Leipzig in idx1 and idx2
+```
+!SLIDE left
+
+# Real-time / `refresh_interval` at 1s by default
+
+}}} images/rt.jpg
+
+!SLIDE left
+
+# Distributed
+
+* start with one node, add more on the go
+* control the number of replicas
+
+``` sh
+$ curl -XPUT localhost:9200/sample_index/_settings -d '{ "index" : { "number_of_replicas" : 2 }}'
 ```
 
+* automatic load balancing (index, search)
 
 !SLIDE left
 
-# 2nd iteration ↺
+# Adapts to your domain
 
-* Python (1814) and XML-driven (148) configuration
-* libraries: *pymarc, libxml, sqlalchemy*
-* **NEW!** metadata snapshot stored in **database** (MySQL)
-
-``` xml
-<datasource kind="title" source_id="0" record_field="001"
-    content_type="application/marc" location="/var/i/000/2*/*-tit.mrc">
-    <process>
-        <fm_cloneOriginal />
-        <fm_setField field="001" value="finc_id()" />
-        <bag_getKeyFromOriginal field="020" subfield="a" key="isbn" />
-        <fm_setLocalInfo />
-        <bag_getLiberoItemData />
-    </process>
-</datasource>
-```
-
-``` python
-for j, record in enumerate(record_iterator, start=1):
-    ...
-    for command in _commands:
-        if 'skip_this' not in bag:
-            bag = command.execute(bag)
-    ...
-```
+}}} images/domain.png
 
 !SLIDE left
 
-# **slow** on 9.1GB of data and 19M records (and that's just one data source)
+# Adapts to your domain
 
-}}} images/slow.jpg
-
-
-!SLIDE left
-
-# 2nd iteration slowness
-
-* needed to reach out to Libero for **every** record
-* no multiprocessing / threading
-* a bit of ORM overhead
-
+* json documents
+* dynamic mapping (without overhead)
+* mapping templates
 
 !SLIDE left
 
-# 3rd iteration ↺
+# Easy to setup
 
-* 2nd iteration +
-    * multiprocessing with 10–200 worker processes
-    * plain SQL
-    * optimized (batched) Libero-requests
-    * a bit of memcached
-* Python (1760), XML (451)
+* you'll need a Java Virtual Machine
+* then
 
-``` python
-QUEUE_SIZE = 20000
-tasks = multiprocessing.JoinableQueue(QUEUE_SIZE)
-num_workers = args.workers or multiprocessing.cpu_count() * 40
-workers = [ Worker(tasks, appconfig, iconf) for i in range(num_workers) ]
-_ = [ w.start() for w in workers ]
+``` shell
+$ wget https://github.com/downloads/elasticsearch/elasticsearch/elasticsearch-0.19.4.zip
+$ unzip elasticsearch-0.19.4.zip
+$ cd elasticsearch-0.19.4
+$ bin/elasticsearch -f
+[16:25:21,766][INFO ][node      ] [Dracula] {0.19.4}[4028]: initializing ...
+[16:25:21,775][INFO ][plugins   ] [Dracula] loaded [], sites []
+[16:25:24,015][INFO ][node      ] [Dracula] {0.19.4}[4028]: initialized
+[16:25:24,015][INFO ][node      ] [Dracula] {0.19.4}[4028]: starting ...   
 ...
-with open(filename, 'r') as handle:
-    reader = pymarc.MARCReader(handle.read(), to_unicode=True)
-    for i, record in enumerate(reader):
-        tasks.put(record)
+[16:25:27,324][INFO ][gateway   ] [Dracula] recovered [0] indices into cluster_state
+```
+
+!SLIDE left
+
+# Easy to setup
+
+* index a doc
+
+``` shell
+$ curl -XPUT 'http://localhost:9200/twitter/tweet/1' -d '{
+    "user" : "kimchy",
+    "post_date" : "2009-11-15T14:12:12",
+    "message" : "trying out Elastic Search"
+}'
+```
+
+* search a doc
+
+``` shell
+$ curl -XGET 'http://localhost:9200/twitter/tweet/_search?q=user:kimchy'
 ```
 
 
 !SLIDE left
 
-# 3rd iteration: faster, but still sequential – still more control over data needed
+# Configuration via HTTP API
 
-}}} images/tape.gif
+* important settings:
+    * `index.number_of_replicas`
+    * `index.refresh_interval`
+    * `index.blocks.read_only`
 
+* and a lot more (Lucene settings)
+
+!SLIDE left
+
+# Tradeoffs
+
+* no autowarming (see: [https://github.com/elasticsearch/elasticsearch/issues/1006](https://github.com/elasticsearch/elasticsearch/issues/1006))
+* while active, the community is much smaller than SOLR's
+* versioned documents would be nice, but it's not builtin (as we discovered)
+
+!SLIDE left
+
+# What others say
+
+* Solr may be the weapon of choice when building standard search applications, but Elasticsearch takes it to the next level with an architecture for creating modern realtime search applications. 
+
+* Percolation is an exciting and innovative feature that singlehandedly blows Solr right out of the water. Elasticsearch is scalable, speedy and a dream to integrate with. (Ryan Sonnek, socialcast)
+
+* more: [http://stackoverflow.com/questions/10213009/solr-vs-elasticsearch](http://stackoverflow.com/questions/10213009/solr-vs-elasticsearch), [http://www.quora.com/What-are-the-main-differences-between-ElasticSearch-Apache-Solr-and-SolrCloud](http://www.quora.com/What-are-the-main-differences-between-ElasticSearch-Apache-Solr-and-SolrCloud)
+
+!SLIDE left
+
+# Percolation?
+
+}}} images/percolation.jpg
+
+!SLIDE left
+
+# Percolation
+
+* Think of it as the reverse operation of indexing and then searching 
+* Instead of sending docs, indexing them, and then running queries
+* One sends queries, registers them, and then sends docs and finds out which queries match that doc
 
 
 !SLIDE left
 
-# 4th iteration ↺
+# Wrap up
 
-* shift to a slightly different processing model
-* **NEW!** **cache** all Libero item data (MySQL) – less network overhead – not possible without Libero *hacks*
-* **NEW!** hold all raw source data in **elasticsearch** – faster, more fine grained access
-* no more XML configuration, but one (or more) python scripts per data source
-* Python (1708), Java (1292), bash (800)
+* more features not covered:
+    * search / query language
+    * facets
+    * scrolls
 
-``` python
-isbns = set()
-for subfield in doc['content']['020']:
-    if 'a' in subfield:
-        # 020.a may look like: '9780948838903 (pbk.) :'
-        isbns.add(subfield['a'].split()[0])
+* language bindings:
+    * Elasticsearch.pm, PHP, Ruby, Python, Java (native), .NET, Clojure, Erlang
 
-for isbn in isbns:
-    # dedup here
-```
-
-
-!SLIDE left
-
-# 4th iteration data access
-
-* flexible ad-hoc queries on MARC
-* all records with ISBN 9781430272304
-
-``` sh
-$ curl -XGET 0.0.0.0:9200/_search?q=content.020.a:9781430272304
-```
-
-* kinds of classifications on NEP
-
-``` sh
-$ curl -XPOST "http://0.0.0.0:9200/nep/_search?pretty=true" -d
-    '{ "query" : { "match_all" : {} }, 
-       "facets" : { "tags" : { "terms" : { "field" : "content.072.2" }}}}'
-```
-
-* pipeable processing (streams records from elasticsearch via processing script into metadata db)
-
-``` sh
-$ ./scroll.sh --index bsz --meta.kind=title | ./scripts/bsz.py
-```
-
-
-!SLIDE left
-
-# 4th iteration summary
-
-* fast (~10x speedup with fewer workers vs 2nd iteration)
-* flexible data access, easier debugging
-
-**but ...**
-
-* data redundancy (files and index)
-* no more declarative XML configuration
-
-!SLIDE left
-
-# lessons learned so far
-
-* **cache** everything (libero data), never go over the network for data you'll access often, stale data (few hours) is ok here
-* make data item **accessible** (elasticsearch for currently 7 sources, more to come soon) / within milliseconds (still needs some work)
-* assume your data-flow can **change** tomorrow (new deduplication workflow, new source, new fields, etc.)
-
-
-!SLIDE left
-
-# FIN
-
-}}} images/Nakonechna.jpg
