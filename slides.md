@@ -192,3 +192,12 @@ $ curl -XGET 'http://localhost:9200/twitter/tweet/_search?q=user:kimchy'
 * language bindings:
     * Elasticsearch.pm, PHP, Ruby, Python, Java (native), .NET, Clojure, Erlang
 
+
+!SLIDE left
+
+# Credits
+
+* http://www.flickr.com/photos/catdancing/4652800293/
+* http://www.flickr.com/photos/andreaskoller/154706613/
+* http://www.flickr.com/photos/ddebold/3738709697/
+
