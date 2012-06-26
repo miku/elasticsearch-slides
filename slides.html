@@ -65,10 +65,10 @@
         
         <ul>
         <li>0.5 (2 years ago)</li>
-        <li>0.17 (11 month ago)</li>
         <li>0.18 (8 month ago)</li>
         <li>0.19 (4 month ago)</li>
         <li>0.19.4 (1 month ago)</li>
+        <li>0.19.5 (12h ago)</li>
         </ul>
         </li>
         </ul>
@@ -140,7 +140,7 @@
         <h1>Adapts to your domain</h1>
         
         <ul>
-        <li>json documents</li>
+        <li>JSON documents</li>
         <li>dynamic mapping (without overhead)</li>
         <li>mapping templates</li>
         </ul>
@@ -158,7 +158,7 @@
     </ul>
     
     
-    <p><textarea class='code' display='none' mode='shell'>$ wget https://github.com/downloads/elasticsearch/elasticsearch/elasticsearch-0.19.4.zip&#x000A;$ unzip elasticsearch-0.19.4.zip&#x000A;$ cd elasticsearch-0.19.4&#x000A;$ bin/elasticsearch -f&#x000A;[16:25:21,766][INFO ][node      ] [Dracula] {0.19.4}[4028]: initializing ...&#x000A;[16:25:21,775][INFO ][plugins   ] [Dracula] loaded [], sites []&#x000A;[16:25:24,015][INFO ][node      ] [Dracula] {0.19.4}[4028]: initialized&#x000A;[16:25:24,015][INFO ][node      ] [Dracula] {0.19.4}[4028]: starting ...   &#x000A;...&#x000A;[16:25:27,324][INFO ][gateway   ] [Dracula] recovered [0] indices into cluster_state</textarea>
+    <p><textarea class='code' display='none' mode='shell'>$ wget https://github.com/downloads/elasticsearch/elasticsearch/elasticsearch-0.19.4.zip&#x000A;$ unzip elasticsearch-0.19.4.zip&#x000A;$ cd elasticsearch-0.19.4&#x000A;$ bin/elasticsearch -f&#x000A;[16:25:21,766][INFO ][node      ] [Dracula] {0.19.4}[4028]: initializing ...&#x000A;[16:25:21,775][INFO ][plugins   ] [Dracula] loaded [], sites []&#x000A;[16:25:24,015][INFO ][node      ] [Dracula] {0.19.4}[4028]: initialized&#x000A;[16:25:24,015][INFO ][node      ] [Dracula] {0.19.4}[4028]: starting ...   &#x000A;...&#x000A;[16:25:27,324][INFO ][gateway   ] [Dracula] recovered [3] indices into cluster_state</textarea>
 </p>
   </div>
   <div class='spacer bottom'></div>
@@ -192,15 +192,16 @@
     <h1>Configuration via HTTP API</h1>
 
 <ul>
-<li><p>important settings:</p>
+<li><p>prominent settings:</p>
 
 <ul>
 <li><code>index.number_of_replicas</code></li>
 <li><code>index.refresh_interval</code></li>
 <li><code>index.blocks.read_only</code></li>
+<li><code>index.merge.policy.merge_factor</code></li>
 </ul>
 </li>
-<li><p>and a lot more (Lucene settings)</p></li>
+<li><p>and a lot more (ES + exposed Lucene settings)</p></li>
 </ul>
   </div>
   <div class='spacer bottom'></div>
@@ -213,7 +214,29 @@
         <ul>
         <li>no autowarming (see: <a href="https://github.com/elasticsearch/elasticsearch/issues/1006">https://github.com/elasticsearch/elasticsearch/issues/1006</a>)</li>
         <li>while active, the community is much smaller than SOLR's</li>
-        <li>versioned documents would be nice, but it's not builtin (as we discovered)</li>
+        <li>versioned documents would be nice, but it's not built-in (as we discovered)</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>ES in a library context</h1>
+        
+        <ul>
+        <li>Linking Open Bibliographic Data <a href="http://lobid.org">http://lobid.org</a>
+        
+        <ul>
+        <li>see also: <a href="http://www.dipf.de/de/bildungsinformation/pdf/pohl-linked-open-data-services-im-hbz-fis-tagung-2012">http://www.dipf.de/de/bildungsinformation/pdf/pohl-linked-open-data-services-im-hbz-fis-tagung-2012</a></li>
+        </ul>
+        </li>
+        <li>finc
+        
+        <ul>
+        <li>raw data storage</li>
+        </ul>
+        </li>
         </ul>
       </div>
       <div class='spacer bottom'></div>

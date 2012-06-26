@@ -28,10 +28,10 @@ index engine based on **Lucene**, that
 * <span style="color:gray">is written</span> in Java
 * <span style="color:gray">is actively developed</span> @[github.com/elasticsearch/elasticsearch](https://github.com/elasticsearch/elasticsearch)
     * 0.5 (2 years ago)
-    * 0.17 (11 month ago)
     * 0.18 (8 month ago)
     * 0.19 (4 month ago)
     * 0.19.4 (1 month ago)
+    * 0.19.5 (12h ago)
 
 !SLIDE left
 
@@ -81,7 +81,7 @@ $ curl -XPUT localhost:9200/sample_index/_settings -d '{ "index" : { "number_of_
 
 # Adapts to your domain
 
-* json documents
+* JSON documents
 * dynamic mapping (without overhead)
 * mapping templates
 
@@ -102,7 +102,7 @@ $ bin/elasticsearch -f
 [16:25:24,015][INFO ][node      ] [Dracula] {0.19.4}[4028]: initialized
 [16:25:24,015][INFO ][node      ] [Dracula] {0.19.4}[4028]: starting ...   
 ...
-[16:25:27,324][INFO ][gateway   ] [Dracula] recovered [0] indices into cluster_state
+[16:25:27,324][INFO ][gateway   ] [Dracula] recovered [3] indices into cluster_state
 ```
 
 !SLIDE left
@@ -130,12 +130,13 @@ $ curl -XGET 'http://localhost:9200/twitter/tweet/_search?q=user:kimchy'
 
 # Configuration via HTTP API
 
-* important settings:
+* prominent settings:
     * `index.number_of_replicas`
     * `index.refresh_interval`
     * `index.blocks.read_only`
+    * `index.merge.policy.merge_factor`
 
-* and a lot more (Lucene settings)
+* and a lot more (ES + exposed Lucene settings)
 
 !SLIDE left
 
@@ -143,7 +144,16 @@ $ curl -XGET 'http://localhost:9200/twitter/tweet/_search?q=user:kimchy'
 
 * no autowarming (see: [https://github.com/elasticsearch/elasticsearch/issues/1006](https://github.com/elasticsearch/elasticsearch/issues/1006))
 * while active, the community is much smaller than SOLR's
-* versioned documents would be nice, but it's not builtin (as we discovered)
+* versioned documents would be nice, but it's not built-in (as we discovered)
+
+!SLIDE left
+
+# ES in a library context
+
+* Linking Open Bibliographic Data [http://lobid.org](http://lobid.org)
+    * see also: [http://www.dipf.de/de/bildungsinformation/pdf/pohl-linked-open-data-services-im-hbz-fis-tagung-2012](http://www.dipf.de/de/bildungsinformation/pdf/pohl-linked-open-data-services-im-hbz-fis-tagung-2012)
+* finc
+    * raw data storage
 
 !SLIDE left
 
